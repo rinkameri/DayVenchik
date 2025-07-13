@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ДайВенчик - Бот для знакомств в Telegram</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Pacifico&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #ff4b8b;
+            --secondary: #9c27b0;
+            --accent: #ff9800;
+            --light: #ffffff;
+            --dark: #2c2c54;
+            --darker: #1a1a2e;
+            --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+            --gradient-reverse: linear-gradient(135deg, var(--secondary), var(--primary));
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f9f7fe;
+            color: var(--dark);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 200, 124, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(156, 39, 176, 0.1) 0%, transparent 20%);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--primary);
+            text-decoration: none;
+            z-index: 1001;
+        }
+        
+        .logo i {
+            color: var(--secondary);
+            font-size: 28px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            padding: 5px 0;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        /* Burger Menu */
+        .burger-menu {
+            display: none;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        
+        .burger-menu div {
+            width: 25px;
+            height: 3px;
+            background-color: var(--dark);
+            margin: 5px;
+            transition: var(--transition);
+        }
+        
+        /* Mobile Menu */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 80%;
+            height: 100vh;
+            background: var(--light);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .mobile-menu.active {
+            right: 0;
+        }
+        
+        .mobile-menu a {
+            display: block;
+            color: var(--dark);
+            text-decoration: none;
+            font-size: 1.5rem;
+            margin: 15px 0;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .mobile-menu a:hover {
+            background: var(--gradient);
+            color: white;
+        }
+        
+        .mobile-menu .cta-button {
+            margin-top: 30px;
+            width: 80%;
+        }
+        
+        .close-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 160px 0 100px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,75,139,0.1) 0%, rgba(156,39,176,0.05) 40%, transparent 70%);
+            z-index: -1;
+            animation: pulse 15s infinite alternate;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero h1 {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            line-height: 1.1;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .hero p {
+            font-size: 1.4rem;
+            margin-bottom: 40px;
+            color: var(--dark);
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: var(--gradient);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            box-shadow: 0 10px 25px rgba(255, 75, 139, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(255, 75, 139, 0.6);
+        }
+        
+        .cta-button:active {
+            transform: translateY(0);
+        }
+        
+        .cta-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .cta-button:hover::after {
+            transform: translateX(100%);
+        }
+        
+        .telegram-icon {
+            margin-left: 10px;
+            font-size: 1.3rem;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 100px 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            margin: 0 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 70px;
+            color: var(--dark);
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--gradient);
+            border-radius: 2px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(156, 39, 176, 0.2);
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--gradient);
+            z-index: -1;
+            transition: height 0.3s ease;
+        }
+        
+        .feature-card:hover::before {
+            height: 100%;
+        }
+        
+        .feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 25px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.2);
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+            transition: color 0.3s ease;
+        }
+        
+        .feature-card:hover h3 {
+            color: white;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+            transition: color 0.3s ease;
+        }
+        
+        .feature-card:hover p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        /* Premium Section */
+        .premium {
+            padding: 100px 0;
+            position: relative;
+            text-align: center;
+        }
+        
+        .premium-container {
+            background: var(--gradient);
+            border-radius: 30px;
+            padding: 80px 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(156, 39, 176, 0.3);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.2)"/><circle cx="50" cy="50" r="3" fill="rgba(255,255,255,0.2)"/><circle cx="80" cy="30" r="1.5" fill="rgba(255,255,255,0.2)"/><circle cx="10" cy="70" r="2.5" fill="rgba(255,255,255,0.2)"/><circle cx="90" cy="80" r="1" fill="rgba(255,255,255,0.2)"/></svg>');
+            z-index: -1;
+        }
+        
+        .premium h2 {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .premium p {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+        
+        .price-tag {
+            display: inline-block;
+            background: white;
+            color: var(--primary);
+            font-size: 2.5rem;
+            font-weight: 700;
+            padding: 15px 50px;
+            border-radius: 50px;
+            margin: 30px 0;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        .benefits {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .benefit {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-weight: 500;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .benefit i {
+            font-size: 1.2rem;
+        }
+        
+        /* History Section */
+        #history-page {
+            display: none;
+            padding: 150px 0 100px;
+            min-height: 100vh;
+        }
+        
+        .history-content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .history-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: var(--gradient);
+        }
+        
+        .timeline {
+            position: relative;
+            padding: 40px 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--gradient);
+        }
+        
+        .timeline-item {
+            margin-bottom: 50px;
+            position: relative;
+            padding-left: 50px;
+        }
+        
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .timeline-date {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .timeline-content {
+            background: #f9f7fe;
+            padding: 20px;
+            border-radius: 15px;
+            position: relative;
+        }
+        
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 15px solid #f9f7fe;
+        }
+        
+        .timeline-icon {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .back-button {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: var(--gradient-reverse);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(156, 39, 176, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--darker);
+            color: white;
+            padding: 60px 0 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .footer-content p {
+            margin: 20px 0;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        
+        .username {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            color: var(--accent);
+            margin: 15px 0;
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .social-link {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .social-link:hover {
+            background: var(--gradient);
+            transform: translateY(-5px);
+        }
+        
+        .copyright {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+        
+        /* Secret Message */
+        .secret-message {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.1);
+            font-family: 'Raleway', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 5s ease;
+            cursor: default;
+            opacity: 0;
+        }
+        
+        .secret-message:hover {
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 4px;
+            opacity: 1;
+        }
+        
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 10px 20px rgba(156, 39, 176, 0.3); }
+            50% { transform: scale(1.03); box-shadow: 0 15px 30px rgba(156, 39, 176, 0.4); }
+            100% { transform: scale(1); box-shadow: 0 10px 20px rgba(156, 39, 176, 0.3); }
+        }
+        
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.2); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.1); }
+            60% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Floating elements */
+        .floating {
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+        }
+        
+        .floating:nth-child(1) {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 75, 139, 0.15);
+            top: 20%;
+            left: 5%;
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        .floating:nth-child(2) {
+            width: 70px;
+            height: 70px;
+            background: rgba(156, 39, 176, 0.15);
+            top: 60%;
+            right: 10%;
+            animation: float 10s ease-in-out infinite;
+        }
+        
+        .floating:nth-child(3) {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 152, 0, 0.15);
+            bottom: 20%;
+            left: 15%;
+            animation: float 7s ease-in-out infinite;
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .burger-menu {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            .premium-container {
+                padding: 60px 20px;
+            }
+            
+            .premium h2 {
+                font-size: 2.5rem;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .price-tag {
+                font-size: 2rem;
+                padding: 12px 30px;
+            }
+            
+            .benefits {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .history-content {
+                padding: 30px 20px;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Animation on scroll */
+        .hidden {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s ease;
+        }
+        
+        .show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating background elements -->
+    <div class="floating"></div>
+    <div class="floating"></div>
+    <div class="floating"></div>
+    
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <a href="#" class="logo" id="main-logo">
+                <i class="fas fa-heart"></i>
+                ДайВенчик
+            </a>
+            <nav class="nav-links">
+                <a href="#features">Возможности</a>
+                <a href="#premium">Премиум</a>
+                <a href="#start">Начать</a>
+                <a href="#" id="history-link">История</a>
+            </nav>
+            <div class="burger-menu" id="burger">
+                <div class="line1"></div>
+                <div class="line2"></div>
+                <div class="line3"></div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobile-menu">
+            <span class="close-menu" id="close-menu"><i class="fas fa-times"></i></span>
+            <a href="#features">Возможности</a>
+            <a href="#premium">Премиум</a>
+            <a href="#start">Начать</a>
+            <a href="#" id="mobile-history-link">История создания</a>
+            <a href="https://t.me/DayVenchcikBot" class="cta-button">
+                Перейти в бота <i class="fab fa-telegram telegram-icon"></i>
+            </a>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container hero-content">
+                <h1>Найди свою пару в Telegram</h1>
+                <p>ДайВенчик - умный бот для знакомств, который поможет тебе найти интересных людей рядом. Общайся, флиртуй и встречайся легко и безопасно!</p>
+                <a href="https://t.me/DayVenchcikBot" class="cta-button">
+                    Начать знакомства <i class="fab fa-telegram telegram-icon"></i>
+                </a>
+            </div>
+        </section>
+        
+        <!-- Features Section -->
+        <section id="features" class="features hidden">
+            <div class="container">
+                <h2 class="section-title">Наши возможности</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-search feature-icon"></i>
+                        <h3>Умный поиск</h3>
+                        <p>Находи людей по интересам, возрасту и местоположению. Наш алгоритм подберет идеальных кандидатов специально для тебя.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <i class="fas fa-comments feature-icon"></i>
+                        <h3>Аночат</h3>
+                        <p>Общайся анонимно, пока не будешь готов открыться. Ваша личность будет скрыта до взаимной симпатии.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <i class="fas fa-shield-alt feature-icon"></i>
+                        <h3>Безопасность</h3>
+                        <p>Модерация профилей и сообщений для вашего комфорта. Мы заботимся о вашей безопасности и конфиденциальности.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Premium Section -->
+        <section id="premium" class="premium hidden">
+            <div class="container">
+                <div class="premium-container">
+                    <h2>Премиум подписка</h2>
+                    <p>Получи эксклюзивные возможности для максимально эффективных знакомств</p>
+                    
+                    <div class="price-tag">99 руб/мес</div>
+                    
+                    <div class="benefits">
+                        <div class="benefit"><i class="fas fa-check-circle"></i> Приоритет в поиске</div>
+                        <div class="benefit"><i class="fas fa-check-circle"></i> Неограниченные лайки</div>
+                        <div class="benefit"><i class="fas fa-check-circle"></i> Расширенная статистика</div>
+                        <div class="benefit"><i class="fas fa-check-circle"></i> Специальные стикеры</div>
+                        <div class="benefit"><i class="fas fa-check-circle"></i> Невидимый режим</div>
+                    </div>
+                    
+                    <a href="https://t.me/DayVenchcikBot" class="cta-button">
+                        Попробовать премиум
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Start Section -->
+        <section id="start" class="premium hidden" style="background: transparent; padding: 50px 0 100px;">
+            <div class="container">
+                <h2 class="section-title">Начни прямо сейчас!</h2>
+                <p style="color: var(--dark); max-width: 600px; margin: 0 auto 40px; font-size: 1.2rem;">
+                    Присоединяйся к тысячам пользователей, которые уже нашли свою пару с помощью ДайВенчик
+                </p>
+                <a href="https://t.me/DayVenchcikBot" class="cta-button" style="font-size: 1.3rem; padding: 18px 50px;">
+                    Перейти в бота <i class="fab fa-telegram telegram-icon"></i>
+                </a>
+            </div>
+        </section>
+    </main>
+    
+    <!-- History Page -->
+    <section id="history-page">
+        <div class="container">
+            <div class="history-content">
+                <h2 class="section-title">История создания</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="timeline-date">Январь 2025</div>
+                        <div class="timeline-content">
+                            <p>Идея создания бота возникла в процессе поиска решения для безопасных и удобных знакомств в Telegram. Наша команда решила создать бота, который объединит людей по интересам и поможет найти настоящие связи.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div class="timeline-date">Март 2025</div>
+                        <div class="timeline-content">
+                            <p>Началась активная разработка. Мы создали уникальный алгоритм подбора пар, который учитывает не только базовые параметры, но и психологическую совместимость пользователей.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="timeline-date">Июнь 2025</div>
+                        <div class="timeline-content">
+                            <p>Запуск первой бета-версии ДайВенчик. Первые 1000 пользователей получили бесплатный доступ к премиум функциям. За первый месяц ботом воспользовалось более 5000 человек.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="timeline-date">Сентябрь 2025</div>
+                        <div class="timeline-content">
+                            <p>Официальный релиз бота! Мы добавили новые функции, улучшили безопасность и запустили премиум подписку. Уже через месяц количество пользователей превысило 50 000.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="timeline-date">Настоящее время</div>
+                        <div class="timeline-content">
+                            <p>ДайВенчик продолжает развиваться. Мы постоянно добавляем новые функции, улучшаем алгоритм и заботимся о безопасности наших пользователей. Каждый день тысячи людей находят здесь новых друзей и вторые половинки!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="#" class="back-button" id="back-button"><i class="fas fa-arrow-left"></i> Вернуться на главную</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <h3>ДайВенчик</h3>
+            <p>Самый простой и удобный способ найти интересных людей для общения и знакомств прямо в Telegram</p>
+            
+            <div class="username">@DayVenchcikBot</div>
+            
+            <div class="social-links">
+                <a href="https://t.me/DayVenchcikBot" class="social-link">
+                    <i class="fab fa-telegram"></i>
+                </a>
+                <a href="#" class="social-link">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="#" class="social-link">
+                    <i class="fab fa-vk"></i>
+                </a>
+            </div>
+            
+            <p class="copyright">© 2025 ДайВенчик. Все права защищены.</p>
+            
+            <!-- Secret Message -->
+            <div class="secret-message">i love Liza by rinka</div>
+        </div>
+    </footer>
+    
+    <script>
+        // DOM Elements
+        const burgerMenu = document.getElementById('burger');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMenu = document.getElementById('close-menu');
+        const historyLink = document.getElementById('history-link');
+        const mobileHistoryLink = document.getElementById('mobile-history-link');
+        const backButton = document.getElementById('back-button');
+        const mainContent = document.getElementById('main-content');
+        const historyPage = document.getElementById('history-page');
+        const mainLogo = document.getElementById('main-logo');
+        const secretMessage = document.querySelector('.secret-message');
+        
+        // Mobile Menu Toggle
+        burgerMenu.addEventListener('click', () => {
+            mobileMenu.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        
+        closeMenu.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+        
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            });
+        });
+        
+        // Show History Page
+        function showHistoryPage() {
+            mainContent.style.display = 'none';
+            historyPage.style.display = 'block';
+            window.scrollTo(0, 0);
+            
+            // Close mobile menu if open
+            mobileMenu.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Show Main Page
+        function showMainPage() {
+            historyPage.style.display = 'none';
+            mainContent.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+        
+        // Event Listeners
+        historyLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showHistoryPage();
+        });
+        
+        mobileHistoryLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showHistoryPage();
+        });
+        
+        backButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            showMainPage();
+        });
+        
+        mainLogo.addEventListener('click', (e) => {
+            e.preventDefault();
+            showMainPage();
+        });
+        
+        // Animation on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                }
+            });
+        });
+        
+        const hiddenElements = document.querySelectorAll('.hidden');
+        hiddenElements.forEach((el) => observer.observe(el));
+        
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.padding = '10px 0';
+                header.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
+            } else {
+                header.style.padding = '20px 0';
+                header.style.boxShadow = '0 2px 15px rgba(0, 0, 0, 0.1)';
+            }
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                if (this.getAttribute('href') === '#') return;
+                
+                e.preventDefault();
+                
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Button hover effect enhancement
+        const buttons = document.querySelectorAll('.cta-button');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                button.style.transform = 'translateY(-5px)';
+            });
+            
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Secret message animation
+        setTimeout(() => {
+            secretMessage.style.animation = 'fadeIn 2s forwards';
+            setTimeout(() => {
+                secretMessage.style.animation = 'heartBeat 1s ease';
+            }, 3000);
+        }, 10000);
+        
+        secretMessage.addEventListener('click', () => {
+            secretMessage.style.animation = 'heartBeat 1s ease';
+        });
+        
+        // Burger menu animation
+        burgerMenu.addEventListener('click', function() {
+            this.classList.toggle('toggle');
+        });
+    </script>
+</body>
+</html>
